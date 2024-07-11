@@ -1,1 +1,27 @@
-Hiii alll
+pipeline{
+    agent any
+    stages{
+        stage("Sourcecode GitHub"){
+            steps{
+                git url: 'https://github.com/shubham93096/apache.git',
+                    credentialsId: 'github-pat'
+            }
+        }
+         stage("Build Dockerfile Into DockerImage"){
+            steps{
+                sh 'docker build -t $JOB_NAME.$BUILD_ID .'
+                sh 'docker image tag $JOB_NAME.$BUILD_ID shubham7890/$JOB_NAME.$BUILD_ID'
+                sh 'docker image tag shubham7890/$JOB_NAME.$BUILD_ID shubham7890/$JOB_NAME:latest'
+            }
+        }
+        stage("Push Dockerimage"){
+            steps{
+                withCredentials([string(credentialsId: 'shubham7890', variable: 'dockerhubpassword')]) {
+    // some block
+    sh 'docker login -u shubham7890 -p ${dockerhubpassword}'
+    sh 'docker image push shubham7890/$JOB_NAME:latest'
+}
+            }
+        }
+    }
+}
